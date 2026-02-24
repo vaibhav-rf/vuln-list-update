@@ -45,7 +45,6 @@ var (
 	vulnListDir        = flag.String("vuln-list-dir", "", "vuln-list dir")
 	targetUri          = flag.String("target-uri", "", "alternative repository URI (only glad)")
 	targetBranch       = flag.String("target-branch", "", "alternative repository branch (only glad)")
-	rapidfortRepoDir   = flag.String("rapidfort-repo-dir", "", "path to an already-cloned rapidfort/security-advisories repo (skips git clone)")
 )
 
 func main() {

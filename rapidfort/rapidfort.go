@@ -51,8 +51,8 @@ func WithSupportedOSes(oses []string) option {
 	return func(c *Updater) { c.supportedOSes = oses }
 }
 
-// Updater clones the RapidFort security-advisories repo and writes per-codename
-// per-package JSON files to vuln-list/rapidfort/{os}/{codename}/{package}.json.
+// Updater clones the RapidFort security-advisories repo and writes per-version
+// per-package JSON files to vuln-list/rapidfort/{os}/{version}/{package}.json.
 type Updater struct {
 	vulnListDir   string
 	cacheDir      string
@@ -122,7 +122,7 @@ func (u *Updater) Update() error {
 }
 
 // processOS walks all *.json files in srcDir, parses each SourcePackageAdvisory,
-// and writes split per-codename output files under outDir/{osName}/.
+// and writes split per-version output files under outDir/{osName}/.
 func (u *Updater) processOS(outDir, osName, srcDir string) error {
 	entries, err := os.ReadDir(srcDir)
 	if err != nil {
@@ -159,19 +159,19 @@ func (u *Updater) processOS(outDir, osName, srcDir string) error {
 	return nil
 }
 
-// saveAdvisory splits a SourcePackageAdvisory by codename and writes one file per codename.
-// Output path: {outDir}/{osName}/{codename}/{packageName}.json
+// saveAdvisory splits a SourcePackageAdvisory by version and writes one file per version.
+// Output path: {outDir}/{osName}/{version}/{packageName}.json
 func (u *Updater) saveAdvisory(outDir, osName string, src SourcePackageAdvisory) error {
-	for codename, cveMap := range src.Advisory {
+	for version, cveMap := range src.Advisory {
 		if len(cveMap) == 0 {
 			continue
 		}
 		pkg := PackageAdvisory{
-			PackageName:    src.PackageName,
-			DistroCodename: codename,
-			Advisories:     cveMap,
+			PackageName:   src.PackageName,
+			DistroVersion: version,
+			Advisories:    cveMap,
 		}
-		filePath := filepath.Join(outDir, osName, codename, fmt.Sprintf("%s.json", src.PackageName))
+		filePath := filepath.Join(outDir, osName, version, fmt.Sprintf("%s.json", src.PackageName))
 		if err := utils.Write(filePath, pkg); err != nil {
 			return xerrors.Errorf("failed to write %s: %w", filePath, err)
 		}

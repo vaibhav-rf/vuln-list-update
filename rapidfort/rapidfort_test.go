@@ -23,7 +23,7 @@ func TestUpdater_Update(t *testing.T) {
 			name:    "happy path",
 			repoDir: "testdata/repo",
 			wantFiles: []string{
-				"ubuntu/focal/curl.json",
+				"ubuntu/20.04/curl.json",
 			},
 		},
 		{
