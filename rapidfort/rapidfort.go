@@ -91,7 +91,7 @@ func (u *Updater) Update() error {
 	if repoDir == "" {
 		// Clone or pull into the cache directory.
 		repoDir = filepath.Join(u.cacheDir, repoCloneDir)
-		log.Printf("Cloning/pulling RapidFort security advisories into %s", repoDir)
+		log.Printf("Updating RapidFort advisories repo in %s", repoDir)
 		gc := git.Config{}
 		if _, err := gc.CloneOrPull(u.repoURL, repoDir, repoBranch, false); err != nil {
 			return xerrors.Errorf("failed to clone/pull RapidFort advisory repo: %w", err)
@@ -99,7 +99,6 @@ func (u *Updater) Update() error {
 	}
 
 	outDir := filepath.Join(u.vulnListDir, rapidfortDir)
-	log.Printf("Removing old RapidFort data at %s", outDir)
 	if err := os.RemoveAll(outDir); err != nil {
 		return xerrors.Errorf("failed to remove old RapidFort directory: %w", err)
 	}
@@ -110,9 +109,11 @@ func (u *Updater) Update() error {
 	for _, osName := range u.supportedOSes {
 		srcDir := filepath.Join(repoDir, repoOSPath, osName)
 		if ok, _ := utils.Exists(srcDir); !ok {
-			log.Printf("warn: %s not found in advisory repo, skipping", srcDir)
+			// Keep as warning: signals missing OS dir without spamming counts.
+			log.Printf("warn: RapidFort advisories directory not found, skipping: %s", srcDir)
 			continue
 		}
+
 		log.Printf("Processing RapidFort advisories for %s...", osName)
 		if err := u.processOS(outDir, osName, srcDir); err != nil {
 			return xerrors.Errorf("failed to process %s advisories: %w", osName, err)
@@ -129,39 +130,72 @@ func (u *Updater) processOS(outDir, osName, srcDir string) error {
 		return xerrors.Errorf("failed to read %s: %w", srcDir, err)
 	}
 
+	var (
+		totalSourceFiles    int
+		totalOutputFiles    int
+		readErrorFiles      int
+		invalidJSONFiles    int
+		missingPkgNameFiles int
+	)
+
 	for _, entry := range entries {
 		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".json") {
 			continue
 		}
 
+		totalSourceFiles++
+
 		filePath := filepath.Join(srcDir, entry.Name())
 		data, err := os.ReadFile(filePath)
 		if err != nil {
+			// Keep per-file warning: actionable and explains *which* file failed.
 			log.Printf("warn: failed to read %s: %v", filePath, err)
+			readErrorFiles++
 			continue
 		}
 
 		var src SourcePackageAdvisory
 		if err := json.Unmarshal(data, &src); err != nil {
 			log.Printf("warn: failed to parse %s: %v", filePath, err)
+			invalidJSONFiles++
 			continue
 		}
 
 		if src.PackageName == "" {
 			log.Printf("warn: missing package_name in %s, skipping", filePath)
+			missingPkgNameFiles++
 			continue
 		}
 
-		if err := u.saveAdvisory(outDir, osName, src); err != nil {
+		written, err := u.saveAdvisory(outDir, osName, src)
+		if err != nil {
 			return xerrors.Errorf("failed to save advisory for %s/%s: %w", osName, src.PackageName, err)
 		}
+		totalOutputFiles += written
 	}
+
+	failures := readErrorFiles + invalidJSONFiles + missingPkgNameFiles
+	if failures == 0 {
+		log.Printf("Finished RapidFort advisories for %s.", osName)
+		return nil
+	}
+
+	// Only print counts when there are failures.
+	log.Printf(
+		"Finished RapidFort advisories for %s with issues: %d read errors, %d invalid JSON, %d missing package_name (source=%d, output=%d)",
+		osName,
+		readErrorFiles, invalidJSONFiles, missingPkgNameFiles,
+		totalSourceFiles, totalOutputFiles,
+	)
+
 	return nil
 }
 
-// saveAdvisory splits a SourcePackageAdvisory by version and writes one file per version.
+// saveAdvisory splits a SourcePackageAdvisory by version and writes one file per version,
+// returning the number of files written.
 // Output path: {outDir}/{osName}/{version}/{packageName}.json
-func (u *Updater) saveAdvisory(outDir, osName string, src SourcePackageAdvisory) error {
+func (u *Updater) saveAdvisory(outDir, osName string, src SourcePackageAdvisory) (int, error) {
+	written := 0
 	for version, cveMap := range src.Advisory {
 		if len(cveMap) == 0 {
 			continue
@@ -173,9 +207,9 @@ func (u *Updater) saveAdvisory(outDir, osName string, src SourcePackageAdvisory)
 		}
 		filePath := filepath.Join(outDir, osName, version, fmt.Sprintf("%s.json", src.PackageName))
 		if err := utils.Write(filePath, pkg); err != nil {
-			return xerrors.Errorf("failed to write %s: %w", filePath, err)
+			return written, xerrors.Errorf("failed to write %s: %w", filePath, err)
 		}
-		log.Printf("Saved %s", filePath)
+		written++
 	}
-	return nil
+	return written, nil
 }
