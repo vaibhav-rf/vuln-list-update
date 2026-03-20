@@ -24,6 +24,7 @@ func TestUpdater_Update(t *testing.T) {
 			repoDir: "testdata/repo",
 			wantFiles: []string{
 				"ubuntu/20.04/curl.json",
+				"redhat/9/curl.json",
 			},
 		},
 		{
@@ -43,7 +44,7 @@ func TestUpdater_Update(t *testing.T) {
 			updater := NewUpdater(
 				WithVulnListDir(tmpDir),
 				WithRepoDir(tt.repoDir),
-				WithSupportedOSes([]string{"ubuntu"}),
+				WithSupportedOSes([]string{"ubuntu", "redhat"}),
 			)
 
 			err := updater.Update()

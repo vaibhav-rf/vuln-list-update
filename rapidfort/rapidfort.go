@@ -23,7 +23,7 @@ const (
 )
 
 // defaultSupportedOSes lists the OS subdirectories to ingest from the cloned repo.
-var defaultSupportedOSes = []string{"ubuntu", "alpine"}
+var defaultSupportedOSes = []string{"ubuntu", "alpine", "redhat"}
 
 type option func(c *Updater)
 
