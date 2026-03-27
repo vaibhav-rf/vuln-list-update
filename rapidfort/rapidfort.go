@@ -176,11 +176,11 @@ func (u *Updater) processOS(outDir, osName, srcDir string) error {
 
 	failures := readErrorFiles + invalidJSONFiles + missingPkgNameFiles
 	if failures == 0 {
-		log.Printf("Finished RapidFort advisories for %s.", osName)
+		log.Printf("Finished RapidFort advisories for %s (source=%d, output=%d).", osName, totalSourceFiles, totalOutputFiles)
 		return nil
 	}
 
-	// Only print counts when there are failures.
+	// Print counts with failure breakdown.
 	log.Printf(
 		"Finished RapidFort advisories for %s with issues: %d read errors, %d invalid JSON, %d missing package_name (source=%d, output=%d)",
 		osName,

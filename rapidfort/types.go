@@ -3,7 +3,7 @@ package rapidfort
 // SourcePackageAdvisory represents the format of a file in the security-advisories GitHub repo.
 // e.g. OS/ubuntu/curl.json or OS/debian/curl.json
 type SourcePackageAdvisory struct {
-	PackageName string                        `json:"package_name"`
+	PackageName string                         `json:"package_name"`
 	Advisory    map[string]map[string]CVEEntry `json:"advisory"` // version -> cveID -> CVEEntry
 }
 
@@ -30,11 +30,4 @@ type PackageAdvisory struct {
 	PackageName   string              `json:"package_name"`
 	DistroVersion string              `json:"distro_version"`
 	Advisories    map[string]CVEEntry `json:"advisories"` // cveID -> CVEEntry
-}
-
-// GitHubContentItem represents one item returned by the GitHub Contents REST API.
-type GitHubContentItem struct {
-	Name        string `json:"name"`
-	Type        string `json:"type"`         // "file" or "dir"
-	DownloadURL string `json:"download_url"` // URL to fetch raw file content
 }
