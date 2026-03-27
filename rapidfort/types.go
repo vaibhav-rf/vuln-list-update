@@ -21,6 +21,7 @@ type CVEEntry struct {
 type Event struct {
 	Introduced string `json:"introduced,omitempty"`
 	Fixed      string `json:"fixed,omitempty"`
+	Identifier string `json:"identifier,omitempty"` // e.g. "el9", "fc39"; absent for ubuntu/alpine
 }
 
 // PackageAdvisory is the normalized form written to vuln-list, one file per OS version per package.
