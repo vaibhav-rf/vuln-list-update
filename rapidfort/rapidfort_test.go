@@ -33,6 +33,15 @@ func TestUpdater_Update(t *testing.T) {
 			},
 		},
 		{
+			name:          "happy path — debian with multiple versions",
+			repoDir:       "testdata/repo",
+			supportedOSes: []string{"debian"},
+			wantFiles: []string{
+				"debian/11/curl.json",
+				"debian/12/curl.json",
+			},
+		},
+		{
 			name:          "invalid JSON is skipped without error",
 			repoDir:       "testdata/repo_invalid",
 			supportedOSes: []string{"ubuntu"},

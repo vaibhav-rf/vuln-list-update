@@ -15,15 +15,15 @@ import (
 )
 
 const (
-	rapidfortDir  = "rapidfort"
+	rapidfortDir   = "rapidfort"
 	defaultRepoURL = "https://github.com/rapidfort/security-advisories.git"
-	repoBranch    = "main"
-	repoCloneDir  = "rapidfort-advisories" // subdir inside cacheDir
-	repoOSPath    = "OS"                   // OS/{osName}/{package}.json inside the repo
+	repoBranch     = "main"
+	repoCloneDir   = "rapidfort-advisories" // subdir inside cacheDir
+	repoOSPath     = "OS"                   // OS/{osName}/{package}.json inside the repo
 )
 
 // defaultSupportedOSes lists the OS subdirectories to ingest from the cloned repo.
-var defaultSupportedOSes = []string{"ubuntu", "alpine", "redhat"}
+var defaultSupportedOSes = []string{"ubuntu", "alpine", "redhat", "debian"}
 
 type option func(c *Updater)
 
