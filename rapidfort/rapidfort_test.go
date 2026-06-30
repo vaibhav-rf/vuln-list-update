@@ -42,6 +42,15 @@ func TestUpdater_Update(t *testing.T) {
 			},
 		},
 		{
+			name:          "happy path — oracle with multiple versions",
+			repoDir:       "testdata/repo",
+			supportedOSes: []string{"oracle"},
+			wantFiles: []string{
+				"oracle/8/curl.json",
+				"oracle/9/curl.json",
+			},
+		},
+		{
 			name:          "invalid JSON is skipped without error",
 			repoDir:       "testdata/repo_invalid",
 			supportedOSes: []string{"ubuntu"},
